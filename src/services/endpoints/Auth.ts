@@ -15,7 +15,7 @@ export interface ILoginCredentials {
 export default class AuthRequest {
 	public static DoLogin(
 		loginDTO: ILoginCredentials
-	): Promise<IResponse<IAlunoModel>> {
+	): Promise<IResponse<IAuthResponse>> {
 		return RestApi.httpPost(`/auth/login`, loginDTO);
 	}
 }

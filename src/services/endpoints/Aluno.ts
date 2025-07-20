@@ -1,6 +1,13 @@
 import type { IResponse } from "../ApiBase";
 import RestApi from "../ApiBase";
 
+export interface IPlanoModel {
+	id: string;
+	nome: string;
+	duracao: string;
+	descricao: string;
+}
+
 export interface IAlunoModel {
 	id: string;
 	nome: string;
@@ -8,12 +15,15 @@ export interface IAlunoModel {
 	cpf: string;
 	telefone: string;
 	endereco: string;
-	data_nasc: string;
+	dataNasc: string;
 	status: string;
 	foto: string;
-	id_plano: string | null;
+	idPlano: string | null;
 	created_at: string;
 	updated_at: string;
+
+	// Novo campo opcional vindo do backend
+	plano?: IPlanoModel;
 }
 
 export interface ICreateAlunoDTO {
@@ -27,10 +37,10 @@ export interface ICreateAlunoDTO {
 	foto: string;
 }
 
+export type IUpdateAlunoDTO = Partial<Omit<ICreateAlunoDTO, "senha">>;
+
 export default class AlunoRequest {
-	public static GetAlunoById(
-		idAluno: string
-	): Promise<IResponse<IAlunoModel[]>> {
+	public static GetAlunoById(idAluno: string): Promise<IResponse<IAlunoModel>> {
 		return RestApi.httpGet(`/alunos/${idAluno}`);
 	}
 
@@ -38,5 +48,16 @@ export default class AlunoRequest {
 		createAlunoDTO: ICreateAlunoDTO
 	): Promise<IResponse<IAlunoModel>> {
 		return RestApi.httpPost(`/alunos`, createAlunoDTO);
+	}
+
+	public static UpdateAluno(
+		updateAlunoDTO: IUpdateAlunoDTO,
+		idAluno: string
+	): Promise<IResponse<IAlunoModel>> {
+		return RestApi.httpPut(`/alunos/${idAluno}`, updateAlunoDTO);
+	}
+
+	public static DeleteAluno(idAluno: string): Promise<IResponse<IAlunoModel>> {
+		return RestApi.httpDelete(`/alunos/${idAluno}`);
 	}
 }

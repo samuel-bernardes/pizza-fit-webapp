@@ -1,8 +1,46 @@
 import { useNavigate } from "react-router";
 import { logo } from "../assets";
+import { useContext, useState, type ChangeEvent, type FormEvent } from "react";
+import type { ILoginCredentials } from "../services/endpoints/Auth";
+import AuthRequest from "../services/endpoints/Auth";
+import { useUserContext } from "../context/UserContext";
 
 function Login() {
 	const navigate = useNavigate();
+	const { login } = useUserContext();
+	const [isLoading, setIsLoading] = useState(false);
+	const [error, setError] = useState<string | null>(null);
+
+	const [formData, setFormData] = useState<ILoginCredentials>({
+		email: "",
+		senha: "",
+	});
+
+	const handleSubmit = async (e: FormEvent) => {
+		e.preventDefault();
+		setError(null);
+		setIsLoading(true);
+
+		try {
+			const response = await AuthRequest.DoLogin(formData);
+
+			if (response.status === 200 && response.data) {
+				login(response.data.aluno, response.data.token);
+				navigate("/perfil", { state: { success: true } });
+			} else {
+				setError(response.message || "Erro ao realizar login!");
+			}
+		} catch (error) {
+			setError("Erro ao realizar login! Verifique suas credenciais.");
+		} finally {
+			setIsLoading(false);
+		}
+	};
+
+	const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+		const { name, value } = e.target;
+		setFormData((prev) => ({ ...prev, [name]: value }));
+	};
 
 	return (
 		<div className="flex min-h-screen flex-col justify-center items-center px-6 py-12 lg:px-8 bg-gray-50">
@@ -23,6 +61,13 @@ function Login() {
 				</div>
 
 				<div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200">
+					{/* Exibição de erro */}
+					{error && (
+						<div className="mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-md border border-red-200">
+							{error}
+						</div>
+					)}
+
 					<form className="space-y-6">
 						<div>
 							<label
@@ -36,8 +81,11 @@ function Login() {
 								name="email"
 								type="email"
 								required
+								value={formData.email}
+								onChange={handleInputChange}
 								className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
 								placeholder="seu@email.com"
+								disabled={isLoading}
 							/>
 						</div>
 
@@ -58,19 +106,54 @@ function Login() {
 							</div>
 							<input
 								id="password"
-								name="password"
+								name="senha"
 								type="password"
+								value={formData.senha}
+								onChange={handleInputChange}
 								required
 								className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
 								placeholder="••••••••"
+								disabled={isLoading}
 							/>
 						</div>
 
 						<button
+							onClick={handleSubmit}
 							type="submit"
-							className="w-full py-2 px-4 bg-yellow-600 hover:bg-yellow-500 text-white font-medium rounded-md transition duration-150 ease-in-out shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+							disabled={isLoading}
+							className={`w-full py-2 px-4 ${
+								isLoading
+									? "bg-yellow-400"
+									: "bg-yellow-600 hover:bg-yellow-500"
+							} text-white font-medium rounded-md transition duration-150 ease-in-out shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 flex justify-center items-center`}
 						>
-							Entrar
+							{isLoading ? (
+								<>
+									<svg
+										className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+										xmlns="http://www.w3.org/2000/svg"
+										fill="none"
+										viewBox="0 0 24 24"
+									>
+										<circle
+											className="opacity-25"
+											cx="12"
+											cy="12"
+											r="10"
+											stroke="currentColor"
+											strokeWidth="4"
+										></circle>
+										<path
+											className="opacity-75"
+											fill="currentColor"
+											d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+										></path>
+									</svg>
+									Processando...
+								</>
+							) : (
+								"Entrar"
+							)}
 						</button>
 					</form>
 
@@ -78,8 +161,12 @@ function Login() {
 						<p className="text-sm text-gray-600">
 							Ainda não é membro?{" "}
 							<span
-								onClick={() => navigate("/registro")}
-								className="font-medium text-yellow-600 hover:text-yellow-500 cursor-pointer"
+								onClick={() => !isLoading && navigate("/registro")}
+								className={`font-medium ${
+									isLoading
+										? "text-yellow-400 cursor-not-allowed"
+										: "text-yellow-600 hover:text-yellow-500 cursor-pointer"
+								}`}
 							>
 								Crie sua conta
 							</span>

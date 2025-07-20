@@ -1,23 +1,12 @@
 import { useState, useRef, type ChangeEvent, type FormEvent } from "react";
 import { useNavigate } from "react-router";
 import { logo } from "../assets";
-import AlunoRequest from "../services/endpoints/Aluno";
-
-interface IFormData {
-	nome: string;
-	email: string;
-	senha: string;
-	cpf: string;
-	telefone: string;
-	endereco: string;
-	dataNasc: string;
-	foto: string;
-}
+import AlunoRequest, { type ICreateAlunoDTO } from "../services/endpoints/Aluno";
 
 function Register() {
 	const navigate = useNavigate();
 	const [isLoading, setIsLoading] = useState(false);
-	const [formData, setFormData] = useState<IFormData>({
+	const [formData, setFormData] = useState<ICreateAlunoDTO>({
 		nome: "",
 		email: "",
 		senha: "",
@@ -27,7 +16,7 @@ function Register() {
 		dataNasc: "",
 		foto: "",
 	});
-	const [previewUrl, setPreviewUrl] = useState(""); // URL temporária para pré-visualização
+	const [previewUrl, setPreviewUrl] = useState("");
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
