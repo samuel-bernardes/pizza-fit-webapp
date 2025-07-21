@@ -7,7 +7,6 @@ import { useUserContext } from "../context/UserContext";
 
 function Header() {
     const navigation = [
-        { name: "Planos", href: "/planos" },
         { name: "Unidades", href: "/unidades" },
         { name: "Sobre", href: "/sobre" },
     ];
