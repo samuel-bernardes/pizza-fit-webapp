@@ -1,7 +1,10 @@
 import { useState, useRef, type ChangeEvent, type FormEvent } from "react";
 import { useNavigate } from "react-router";
 import { logo } from "../assets";
-import AlunoRequest, { type ICreateAlunoDTO } from "../services/endpoints/Aluno";
+import AlunoRequest, {
+	type ICreateAlunoDTO,
+} from "../services/endpoints/Aluno";
+import Swal from "sweetalert2";
 
 function Register() {
 	const navigate = useNavigate();
@@ -65,12 +68,22 @@ function Register() {
 
 			if (response.status === 201) {
 				navigate("/login", { state: { success: true } });
+				Swal.fire({
+					title: "Conta criada com sucesso!",
+					icon: "success",
+				});
 			} else {
-				alert(response.message || "Erro ao criar conta");
+				Swal.fire({
+					title: response.message || "Erro ao criar conta",
+					icon: "error",
+				});
 			}
 		} catch (error) {
 			console.error("Erro na requisição:", error);
-			alert("Erro ao conectar com o servidor");
+			Swal.fire({
+				title: "Erro ao conectar com o servidor",
+				icon: "error",
+			});
 		} finally {
 			setIsLoading(false);
 		}

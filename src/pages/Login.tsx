@@ -4,6 +4,7 @@ import { useContext, useState, type ChangeEvent, type FormEvent } from "react";
 import type { ILoginCredentials } from "../services/endpoints/Auth";
 import AuthRequest from "../services/endpoints/Auth";
 import { useUserContext } from "../context/UserContext";
+import Swal from "sweetalert2";
 
 function Login() {
 	const navigate = useNavigate();
@@ -27,6 +28,10 @@ function Login() {
 			if (response.status === 200 && response.data) {
 				login(response.data.aluno, response.data.token);
 				navigate("/perfil", { state: { success: true } });
+				Swal.fire({
+					title: "Login efetuado com sucesso!",
+					icon: "success",
+				});
 			} else {
 				setError(response.message || "Erro ao realizar login!");
 			}

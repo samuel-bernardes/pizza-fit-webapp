@@ -1,30 +1,32 @@
 import React, { useState, useEffect } from "react";
-import {
-	ClockIcon,
-	CalendarIcon,
-	PencilIcon,
-	CheckCircleIcon,
-} from "@heroicons/react/24/outline";
+import { ClockIcon, PencilIcon } from "@heroicons/react/24/outline";
 import AlunoRequest, {
 	type IAlunoModel,
 	type IUpdateAlunoDTO,
 } from "../services/endpoints/Aluno";
 import { useUserContext } from "../context/UserContext";
 import { useNavigate } from "react-router";
-import {
-	ExclamationTriangleIcon,
-	PlusCircleIcon,
-	TrashIcon,
-	XMarkIcon,
-} from "@heroicons/react/16/solid";
-import {
-	Dialog,
-	DialogBackdrop,
-	DialogPanel,
-	DialogTitle,
-} from "@headlessui/react";
-import type { IAcessoModel } from "../services/endpoints/Acessos";
+import { PlusCircleIcon, TrashIcon } from "@heroicons/react/16/solid";
+import type {
+	IAcessoCreateModel,
+	IAcessoModel,
+	IAcessoUpdateModel,
+} from "../services/endpoints/Acessos";
 import AcessosRequest from "../services/endpoints/Acessos";
+import {
+	CreateAcessModal,
+	DeleteUserModal,
+	StudentHeader,
+} from "../components";
+import PlansTab from "../components/PlansTab";
+import {
+	formatarCPF,
+	formatarData,
+	formatarHora,
+	formatarTelefone,
+} from "../utils/FormatFunctions";
+
+import Swal from "sweetalert2";
 
 function StudentArea() {
 	const [activeTab, setActiveTab] = useState("informacoes");
@@ -48,6 +50,15 @@ function StudentArea() {
 	const { user, logout } = useUserContext();
 	const navigate = useNavigate();
 
+	const [showCreateModal, setShowCreateModal] = useState(false);
+	const [newAcesso, setNewAcesso] = useState<IAcessoCreateModel>({
+		idAluno: user?.id || "",
+		idUnidade: "",
+		horaEntrada: new Date().toISOString().slice(0, 16), // Formato inicial
+		horaSaida: null,
+		descricaoAtividades: "",
+	});
+
 	const [aluno, setAluno] = useState<IAlunoModel>({
 		id: "",
 		nome: "",
@@ -65,29 +76,6 @@ function StudentArea() {
 
 	const [acessos, setAcessos] = useState<IAcessoModel[]>([]);
 	const [acessosLoading, setAcessosLoading] = useState(false);
-
-	const formatarData = (data: string) => {
-		return new Date(data).toLocaleDateString("pt-BR", {
-			day: "2-digit",
-			month: "2-digit",
-			year: "numeric",
-		});
-	};
-
-	const formatarHora = (data: string) => {
-		return new Date(data).toLocaleTimeString("pt-BR", {
-			hour: "2-digit",
-			minute: "2-digit",
-		});
-	};
-
-	const formatarCPF = (cpf: string) => {
-		return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
-	};
-
-	const formatarTelefone = (telefone: string) => {
-		return telefone.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
-	};
 
 	const getStudent = async () => {
 		try {
@@ -108,12 +96,19 @@ function StudentArea() {
 						foto: response.data.foto,
 					});
 				} else {
-					alert(response.message || "Erro ao obter estudante!");
+					Swal.fire({
+						title: response.message || "Erro ao obter estudante!",
+						icon: "error",
+						draggable: true,
+					});
 				}
 			}
 		} catch (error) {
-			console.log(error);
-			alert("Erro ao conectar com o servidor");
+			Swal.fire({
+				title: "Erro ao conectar com o servidor",
+				icon: "error",
+				draggable: true,
+			});
 		} finally {
 			setIsLoading(false);
 		}
@@ -130,12 +125,23 @@ function StudentArea() {
 			if (response.status === 200 && response.data) {
 				setAluno(response.data);
 				setEditMode(false);
-				alert("Dados atualizados com sucesso!");
+				Swal.fire({
+					title: "Dados atualizados com sucesso!",
+					icon: "success",
+				});
 			} else {
-				alert(response.message || "Erro ao atualizar estudante!");
+				Swal.fire({
+					title: response.message || "Erro ao atualizar estudante!",
+					icon: "error",
+					draggable: true,
+				});
 			}
 		} catch (error) {
-			alert("Erro ao conectar com o servidor");
+			Swal.fire({
+				title: "Erro ao conectar com o servidor",
+				icon: "error",
+				draggable: true,
+			});
 		} finally {
 			setUpdateLoading(false);
 		}
@@ -150,11 +156,17 @@ function StudentArea() {
 				if (response.status === 200 && response.data) {
 					setAcessos(response.data);
 				} else {
-					alert(response.message || "Erro ao obter acessos!");
+					Swal.fire({
+						title: response.message || "Erro ao obter acessos!",
+						icon: "error",
+					});
 				}
 			}
 		} catch (error) {
-			alert("Erro ao conectar com o servidor");
+			Swal.fire({
+				title: "Erro ao conectar com o servidor",
+				icon: "error",
+			});
 		} finally {
 			setAcessosLoading(false);
 		}
@@ -165,16 +177,103 @@ function StudentArea() {
 			const response = await AlunoRequest.DeleteAluno(user?.id || "");
 
 			if (response.status === 200) {
-				alert("Conta deletada com sucesso!");
+				Swal.fire({
+					title: "Conta deletada com sucesso!",
+					icon: "success",
+				});
 				logout();
 				navigate("/login");
 			} else {
-				alert(response.message || "Erro ao deletar conta!");
+				Swal.fire({
+					title: response.message || "Erro ao deletar conta!",
+					icon: "error",
+				});
 			}
 		} catch (error) {
-			alert("Erro ao conectar com o servidor");
+			Swal.fire({
+				title: "Erro ao conectar com o servidor",
+				icon: "error",
+			});
 		} finally {
 			setShowDeleteModal(false);
+		}
+	};
+
+	const createAcesso = async () => {
+		try {
+			const response = await AcessosRequest.CreateAcesso({
+				...newAcesso,
+				idAluno: user?.id || "",
+			});
+
+			if (response.status === 201 && response.data) {
+				setAcessos([response.data, ...acessos]);
+				setShowCreateModal(false);
+				setNewAcesso({
+					idAluno: user?.id || "",
+					idUnidade: newAcesso.idUnidade,
+					descricaoAtividades: newAcesso.descricaoAtividades || "",
+					horaEntrada: newAcesso.horaEntrada,
+					horaSaida: newAcesso.horaSaida || "",
+				});
+				Swal.fire({
+					title: "Acesso criado com sucesso!",
+					icon: "success",
+				});
+			} else {
+				Swal.fire({
+					title: response.message || "Erro ao criar acesso!",
+					icon: "error",
+				});
+			}
+		} catch (error) {
+			Swal.fire({
+				title: "Erro ao conectar com o servidor",
+				icon: "error",
+			});
+		}
+	};
+
+	const handleSaveDescricao = async (acessoId: string) => {
+		if (!descricao.trim()) return;
+
+		try {
+			const acessoToUpdate = acessos.find((a) => a.id === acessoId);
+			if (!acessoToUpdate) return;
+
+			const updatedDescricao: IAcessoUpdateModel = {
+				idAluno: user?.id || "",
+				descricaoAtividades: descricao || "",
+			};
+
+			const response = await AcessosRequest.UpdateAcesso(
+				acessoId,
+				updatedDescricao
+			);
+
+			if (response.status === 200 && response.data) {
+				setAcessos(
+					acessos
+						.map((a) => (a.id === acessoId ? response.data : a))
+						.filter((a): a is IAcessoModel => a !== undefined)
+				);
+				setDescricao("");
+				setActiveAcesso(null);
+				Swal.fire({
+					title: "Acesso atualizado com sucesso!",
+					icon: "success",
+				});
+			} else {
+				Swal.fire({
+					title: response.message || "Erro ao atualizar acesso!",
+					icon: "error",
+				});
+			}
+		} catch (error) {
+			Swal.fire({
+				title: "Erro ao conectar com o servidor",
+				icon: "error",
+			});
 		}
 	};
 
@@ -182,19 +281,6 @@ function StudentArea() {
 		getStudent();
 		getAcessos();
 	}, [user]);
-
-	const handleSaveDescricao = (acessoId: string) => {
-		if (!descricao.trim()) return;
-
-		setAcessos(
-			acessos.map((a) =>
-				a.id === acessoId ? { ...a, descricaoAtividades: descricao } : a
-			)
-		);
-
-		setDescricao("");
-		setActiveAcesso(null);
-	};
 
 	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const { name, value } = e.target;
@@ -214,114 +300,23 @@ function StudentArea() {
 
 	return (
 		<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-			<Dialog
-				open={showDeleteModal}
-				onClose={setShowDeleteModal}
-				className="relative z-10"
-			>
-				<DialogBackdrop
-					transition
-					className="fixed inset-0 bg-gray-500/75 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
-				/>
+			<DeleteUserModal
+				deleteStudent={deleteStudent}
+				setShowDeleteModal={setShowDeleteModal}
+				showDeleteModal={showDeleteModal}
+			/>
 
-				<div className="fixed inset-0 z-10 w-screen overflow-y-auto">
-					<div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-						<DialogPanel
-							transition
-							className="relative transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 sm:w-full sm:max-w-lg sm:p-6 data-closed:sm:translate-y-0 data-closed:sm:scale-95"
-						>
-							<div className="absolute top-0 right-0 hidden pt-4 pr-4 sm:block">
-								<button
-									type="button"
-									onClick={() => setShowDeleteModal(false)}
-									className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden"
-								>
-									<XMarkIcon aria-hidden="true" className="size-6" />
-								</button>
-							</div>
-							<div className="sm:flex sm:items-start">
-								<div className="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:size-10">
-									<ExclamationTriangleIcon
-										aria-hidden="true"
-										className="size-6 text-red-600"
-									/>
-								</div>
-								<div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-									<DialogTitle
-										as="h3"
-										className="text-base font-semibold text-gray-900"
-									>
-										Deletar Conta
-									</DialogTitle>
-									<div className="mt-2">
-										<p className="text-sm text-gray-500">
-											Tem certeza que deseja deletar sua conta? Todos os seus
-											dados serão permanentemente removidos. Esta ação não pode
-											ser desfeita!
-										</p>
-									</div>
-								</div>
-							</div>
-							<div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-								<button
-									type="button"
-									onClick={() => deleteStudent()}
-									className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-red-500 sm:ml-3 sm:w-auto"
-								>
-									Deletar
-								</button>
-								<button
-									type="button"
-									onClick={() => setShowDeleteModal(false)}
-									className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-xs ring-1 ring-gray-300 ring-inset hover:bg-gray-50 sm:mt-0 sm:w-auto"
-								>
-									Cancelar
-								</button>
-							</div>
-						</DialogPanel>
-					</div>
-				</div>
-			</Dialog>
+			<CreateAcessModal
+				createAcesso={createAcesso}
+				newAcesso={newAcesso}
+				setNewAcesso={setNewAcesso}
+				showCreateModal={showCreateModal}
+				setShowCreateModal={setShowCreateModal}
+			/>
 
 			<div className="bg-white rounded-2xl shadow-lg overflow-hidden">
 				{/* Cabeçalho com foto e nome */}
-				<div className="bg-gradient-to-r from-yellow-500 to-yellow-600 p-6 sm:p-8">
-					<div className="flex flex-col sm:flex-row items-center">
-						<div className="mb-6 sm:mb-0 sm:mr-6 relative group">
-							<div className="relative">
-								{aluno.foto ? (
-									<img
-										src={aluno.foto}
-										alt={`Foto de ${aluno.nome}`}
-										className="w-32 h-32 rounded-full object-cover border-4 border-gray-100 shadow-lg"
-									/>
-								) : (
-									<div className="bg-gradient-to-br from-yellow-400 to-yellow-600 w-32 h-32 rounded-full flex items-center justify-center border-4 border-white shadow-lg">
-										<span className="text-white text-4xl font-bold">
-											{aluno.nome.charAt(0).toUpperCase()}
-										</span>
-									</div>
-								)}
-							</div>
-						</div>
-						<div className="text-center sm:text-left">
-							<h1 className="text-2xl sm:text-3xl font-bold text-white">
-								{aluno.nome}
-							</h1>
-							<p className="mt-1 text-yellow-100">{aluno.email}</p>
-							<div className="flex flex-wrap gap-2 mt-2">
-								<span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-700 text-yellow-100">
-									<CheckCircleIcon className="h-4 w-4 mr-1" />
-									{aluno.status === "ativo" ? "Ativo" : "Inativo"}
-								</span>
-								<span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-700 text-yellow-100">
-									<CalendarIcon className="h-4 w-4 mr-1" />
-									Ativo desde: {formatarData(aluno.created_at)}
-								</span>
-							</div>
-						</div>
-					</div>
-				</div>
+				<StudentHeader aluno={aluno} />
 
 				{/* Abas de navegação */}
 				<div className="border-b border-gray-200">
@@ -528,50 +523,7 @@ function StudentArea() {
 					)}
 
 					{/* Tab Plano */}
-					{activeTab === "plano" && (
-						<div>
-							<h2 className="text-xl font-bold text-gray-900 mb-6">
-								Meu Plano
-							</h2>
-
-							{aluno.plano ? (
-								<div className="bg-yellow-50 rounded-lg p-6 border border-yellow-200">
-									<div className="flex flex-col md:flex-row md:items-center md:justify-between">
-										<div>
-											<h3 className="text-lg font-semibold text-gray-900">
-												{aluno.plano.nome}
-											</h3>
-											<p className="mt-1 text-yellow-700 font-medium">
-												Duração: {aluno.plano.duracao}
-											</p>
-										</div>
-									</div>
-
-									<div className="mt-6">
-										<h4 className="text-sm font-medium text-gray-700 mb-2">
-											Descrição do Plano:
-										</h4>
-										<p className="text-gray-700">{aluno.plano.descricao}</p>
-									</div>
-								</div>
-							) : (
-								<div className="bg-gray-50 rounded-lg p-6 border border-gray-200 text-center">
-									<h3 className="text-lg font-medium text-gray-900 mb-2">
-										Você não possui um plano ativo
-									</h3>
-									<p className="text-gray-600 mb-4">
-										Adquira um plano para começar a usar a academia
-									</p>
-									<button
-										onClick={() => navigate("/planos")}
-										className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-yellow-600 hover:bg-yellow-700"
-									>
-										Ver Planos Disponíveis
-									</button>
-								</div>
-							)}
-						</div>
-					)}
+					{activeTab === "plano" && <PlansTab aluno={aluno} />}
 
 					{/* Tab Acessos */}
 					{activeTab === "acessos" && (
@@ -591,9 +543,6 @@ function StudentArea() {
 											<thead className="bg-gray-50">
 												<tr>
 													<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-														Data
-													</th>
-													<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
 														Entrada
 													</th>
 													<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -610,17 +559,16 @@ function StudentArea() {
 											<tbody className="bg-white divide-y divide-gray-200">
 												{acessos.map((acesso) => (
 													<tr key={acesso.id} className="hover:bg-gray-50">
-														<td className="px-6 py-4 whitespace-nowrap">
-															<div className="text-sm text-gray-500">
-																{formatarData(acesso.hora_entrada)}
-															</div>
-														</td>
 														<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-															{formatarHora(acesso.hora_entrada)}
+															{formatarData(acesso.hora_entrada) +
+																"-" +
+																formatarHora(acesso.hora_entrada)}
 														</td>
 														<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
 															{acesso.hora_saida
-																? formatarHora(acesso.hora_saida)
+																? formatarData(acesso.hora_saida) +
+																  "-" +
+																  formatarHora(acesso.hora_saida)
 																: "Em andamento"}
 														</td>
 														<td className="px-6 py-4 text-sm text-gray-500">
@@ -643,7 +591,7 @@ function StudentArea() {
 																>
 																	{activeAcesso === acesso.id
 																		? "Cancelar"
-																		: "Adicionar descrição"}
+																		: "Editar descrição"}
 																</button>
 															)}
 														</td>
@@ -655,7 +603,7 @@ function StudentArea() {
 
 									<div className="mt-6 flex justify-center">
 										<button
-											onClick={() => getAcessos()}
+											onClick={() => setShowCreateModal(true)}
 											className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-yellow-600 hover:bg-yellow-700"
 										>
 											<PlusCircleIcon className="h-5 w-5 mr-2" />
@@ -679,14 +627,14 @@ function StudentArea() {
 									{activeAcesso && (
 										<div className="mt-8 bg-gray-50 rounded-lg p-6">
 											<h3 className="text-lg font-medium text-gray-900 mb-4">
-												Adicionar descrição de atividades
+												Editar descrição de atividades
 											</h3>
 											<textarea
 												rows={3}
 												value={descricao}
 												onChange={(e) => setDescricao(e.target.value)}
 												placeholder="Descreva as atividades realizadas neste acesso"
-												className="w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500"
+												className="w-full p-2 rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500"
 											/>
 											<div className="mt-4 flex justify-end space-x-3">
 												<button
