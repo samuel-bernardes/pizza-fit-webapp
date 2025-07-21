@@ -102,24 +102,7 @@ function Units() {
 										<div className="absolute inset-0 -z-10 bg-gradient-to-t from-gray-900 via-gray-900/40" />
 										<div className="absolute inset-0 -z-10 rounded-2xl ring-1 ring-inset ring-gray-900/10" />
 
-										<div className="flex flex-wrap items-center gap-y-1 overflow-hidden text-sm/6 text-gray-300">
-											{unit.horario && (
-												<span className="mr-8">{unit.horario}</span>
-											)}
-											{unit.equipamentos && (
-												<div className="-ml-4 flex items-center gap-x-4">
-													<svg
-														viewBox="0 0 2 2"
-														className="-ml-0.5 size-0.5 flex-none fill-white/50"
-													>
-														<circle r={1} cx={1} cy={1} />
-													</svg>
-													<div className="flex gap-x-2.5">
-														<span className="truncate">{unit.equipamentos}</span>
-													</div>
-												</div>
-											)}
-										</div>
+
 										<h3 className="mt-3 text-lg/6 font-semibold text-white">
 											<span className="absolute inset-0" />
 											{unit.nome}
