@@ -2,8 +2,7 @@ import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/16/solid";
 import type { IAcessoCreateModel } from "../services/endpoints/Acessos";
 import { useEffect, useState } from "react";
-import type { IUnidadesModel } from "../services/endpoints/Unidades";
-import UnidadesRequest from "../services/endpoints/Unidades";
+import UnidadesRequest, { type IUnidadeModel } from "../services/endpoints/Unidades";
 
 interface ICreateAcessModalProps {
 	newAcesso: IAcessoCreateModel;
@@ -22,12 +21,12 @@ function CreateAcessModal(props: ICreateAcessModalProps) {
 		newAcesso,
 	} = props;
 
-	const [unidades, setUnidades] = useState<IUnidadesModel[]>([]);
+	const [unidades, setUnidades] = useState<IUnidadeModel[]>([]);
 
 	// Fetch unidades when the modal opens
 	const fetchUnidades = async () => {
 		try {
-			const response = await UnidadesRequest.GetUnidades();
+			const response = await UnidadesRequest.GetAllUnidades();
 			if (response.status == 200 && response.data) {
 				setUnidades(response.data);
 			} else {

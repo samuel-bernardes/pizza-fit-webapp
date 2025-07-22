@@ -146,8 +146,8 @@ function PlansForm() {
 								)}
 							</div>
 
-							<p className="mt-6 text-4xl font-bold tracking-tight text-gray-900">
-								{plano.duracao} por apenas <span className="text-yellow-500">R$:{plano.preco}</span>
+							<p className="mt-6 text-3xl font-semibold tracking-tight text-gray-900">
+								{plano.duracao} por apenas <span className="text-yellow-500 font-bold">R$:{plano.preco}</span>
 							</p>
 
 							<p className="mt-4 text-sm text-gray-600">{plano.descricao}</p>
