@@ -146,6 +146,10 @@ function PlansForm() {
 								)}
 							</div>
 
+							<p className="mt-6 text-4xl font-bold tracking-tight text-yellow-600">
+								R$: {plano.preco}
+							</p>
+
 							<p className="mt-6 text-4xl font-bold tracking-tight text-gray-900">
 								{plano.duracao}
 							</p>
