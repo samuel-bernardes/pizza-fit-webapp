@@ -4,11 +4,13 @@ import RestApi from "../ApiBase";
 // Tipagem para o modelo de Acesso
 export interface IAcessoModel {
 	id: string;
-	hora_entrada: string;
-	hora_saida: string | null;
+	horaEntrada: string;
+	horaSaida: string | null;
 	id_aluno: string;
 	id_unidade: string;
 	descricao_atividade: string | null;
+	nomeUnidade?: string;
+	enderecoUnidade?: string;
 	created_at: string;
 	updated_at: string;
 }

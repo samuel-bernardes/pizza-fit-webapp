@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ClockIcon, PencilIcon } from "@heroicons/react/24/outline";
 import AlunoRequest, {
+	type IAcessosPorUnidade,
 	type IAlunoModel,
 	type IUpdateAlunoDTO,
 } from "../services/endpoints/Aluno";
@@ -77,13 +78,15 @@ function StudentArea() {
 	const [acessos, setAcessos] = useState<IAcessoModel[]>([]);
 	const [acessosLoading, setAcessosLoading] = useState(false);
 
+	const [acessosPorUnidade, setAcessosPorUnidade] = useState<
+		IAcessosPorUnidade[]
+	>([]);
+
 	const getStudent = async () => {
 		try {
 			setIsLoading(true);
 			if (user) {
 				const response = await AlunoRequest.GetAlunoById(user.id);
-
-				console.log("	Response:", response);
 
 				if (response.status === 200 && response.data) {
 					setAluno(response.data);
@@ -277,9 +280,31 @@ function StudentArea() {
 		}
 	};
 
+	const getAcessosPorUnidade = async () => {
+		try {
+			const response = await AlunoRequest.GetAcessosPorUnidadeComMaisDeTres();
+
+			if (response.status === 200 && response.data) {
+				// Processar os dados conforme necessário
+				setAcessosPorUnidade(response.data);
+			} else {
+				Swal.fire({
+					title: response.message || "Erro ao obter acessos por unidade!",
+					icon: "error",
+				});
+			}
+		} catch (error) {
+			Swal.fire({
+				title: "Erro ao conectar com o servidor",
+				icon: "error",
+			});
+		}
+	};
+
 	useEffect(() => {
 		getStudent();
 		getAcessos();
+		getAcessosPorUnidade();
 	}, [user]);
 
 	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -539,6 +564,100 @@ function StudentArea() {
 							) : (
 								<>
 									<div className="bg-white shadow rounded-lg overflow-hidden">
+										<div className="px-6 py-4 border-b border-gray-200">
+											<h3 className="text-lg font-medium text-gray-900">
+												Acessos por Unidade
+											</h3>
+											<p className="mt-1 text-sm text-gray-500">
+												Visão consolidada dos acessos dos alunos por unidade
+											</p>
+										</div>
+
+										<div className="overflow-x-auto">
+											<table className="min-w-full divide-y divide-gray-200">
+												<thead className="bg-gray-50">
+													<tr>
+														<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+															Aluno
+														</th>
+														<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+															Unidade
+														</th>
+														<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+															Acessos
+														</th>
+														<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+															Status
+														</th>
+													</tr>
+												</thead>
+												<tbody className="bg-white divide-y divide-gray-200">
+													{acessosPorUnidade.map((item) => (
+														<tr
+															key={`${item.alunoId}-${item.unidadeId}`}
+															className="hover:bg-gray-50"
+														>
+															<td className="px-6 py-4 whitespace-nowrap">
+																<div className="flex items-center">
+																	<div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+																		<span className="text-blue-600 font-medium">
+																			{item.alunoNome.charAt(0).toUpperCase()}
+																		</span>
+																	</div>
+																	<div className="ml-4">
+																		<div className="text-sm font-medium text-gray-900">
+																			{item.alunoNome}
+																		</div>
+																	</div>
+																</div>
+															</td>
+															<td className="px-6 py-4 whitespace-nowrap">
+																<div className="text-sm text-gray-900 font-medium">
+																	{item.unidadeNome}
+																</div>
+															</td>
+															<td className="px-6 py-4 whitespace-nowrap">
+																<div className="text-center">
+																	<span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+																		{item.totalAcessos} acessos
+																	</span>
+																</div>
+															</td>
+															<td className="px-6 py-4 whitespace-nowrap">
+																<div className="text-sm text-gray-500">
+																	{item.totalAcessos > 10 ? (
+																		<span className="flex items-center">
+																			<span className="h-2 w-2 rounded-full bg-green-500 mr-2"></span>
+																			Frequente
+																		</span>
+																	) : item.totalAcessos > 0 ? (
+																		<span className="flex items-center">
+																			<span className="h-2 w-2 rounded-full bg-yellow-500 mr-2"></span>
+																			Moderado
+																		</span>
+																	) : (
+																		<span className="flex items-center">
+																			<span className="h-2 w-2 rounded-full bg-red-500 mr-2"></span>
+																			Sem acessos
+																		</span>
+																	)}
+																</div>
+															</td>
+														</tr>
+													))}
+												</tbody>
+											</table>
+										</div>
+
+										{acessosPorUnidade.length === 0 && (
+											<div className="px-6 py-12 text-center">
+												<div className="text-gray-400 text-sm">
+													Nenhum registro encontrado
+												</div>
+											</div>
+										)}
+									</div>
+									<div className="bg-white shadow rounded-lg overflow-hidden">
 										<table className="min-w-full divide-y divide-gray-200">
 											<thead className="bg-gray-50">
 												<tr>
@@ -547,6 +666,9 @@ function StudentArea() {
 													</th>
 													<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
 														Saída
+													</th>
+													<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+														Unidade
 													</th>
 													<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
 														Atividades
@@ -560,22 +682,25 @@ function StudentArea() {
 												{acessos.map((acesso) => (
 													<tr key={acesso.id} className="hover:bg-gray-50">
 														<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-															{formatarData(acesso.hora_entrada) +
+															{formatarData(acesso.horaEntrada) +
 																"-" +
-																formatarHora(acesso.hora_entrada)}
+																formatarHora(acesso.horaEntrada)}
 														</td>
 														<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-															{acesso.hora_saida
-																? formatarData(acesso.hora_saida) +
+															{acesso.horaSaida
+																? formatarData(acesso.horaSaida) +
 																  "-" +
-																  formatarHora(acesso.hora_saida)
+																  formatarHora(acesso.horaSaida)
 																: "Em andamento"}
+														</td>
+														<td className="px-6 py-4 text-sm text-gray-500">
+															{acesso.nomeUnidade || "Não informado"}
 														</td>
 														<td className="px-6 py-4 text-sm text-gray-500">
 															{acesso.descricao_atividade || "Não informado"}
 														</td>
 														<td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-															{acesso.hora_saida && (
+															{acesso.horaSaida && (
 																<button
 																	onClick={() => {
 																		setActiveAcesso(

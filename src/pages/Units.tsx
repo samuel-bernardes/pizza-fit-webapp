@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import UnidadeRequest, { IUnidadeModel } from '../requests/UnidadeRequest'; // ajuste o path conforme sua estrutura
+import type { IUnidadeModel } from '../services/endpoints/Unidades';
+import UnidadeRequest from '../services/endpoints/Unidades';
 
 function Units() {
 	const [units, setUnits] = useState<IUnidadeModel[]>([]);
@@ -12,7 +13,7 @@ function Units() {
 				setLoading(true);
 				const response = await UnidadeRequest.GetAllUnidades();
 				
-				if (response.success) {
+				if (response.data && response.status == 200) {
 					setUnits(response.data);
 				} else {
 					setError('Erro ao carregar unidades');

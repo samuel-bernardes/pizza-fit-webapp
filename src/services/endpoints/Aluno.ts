@@ -1,13 +1,6 @@
 import type { IResponse } from "../ApiBase";
 import RestApi from "../ApiBase";
-
-export interface IPlanoModel {
-	id: string;
-	nome: string;
-	duracao: string;
-	descricao: string;
-}
-
+import type { IPlanoModel } from "./Planos";
 export interface IAlunoModel {
 	id: string;
 	nome: string;
@@ -37,6 +30,14 @@ export interface ICreateAlunoDTO {
 	foto: string;
 }
 
+export interface IAcessosPorUnidade {
+	alunoId: string;
+	alunoNome: string;
+	unidadeId: string;
+	unidadeNome: string;
+	totalAcessos: number;
+}
+
 export type IUpdateAlunoDTO = Partial<Omit<ICreateAlunoDTO, "senha">>;
 
 export default class AlunoRequest {
@@ -59,5 +60,11 @@ export default class AlunoRequest {
 
 	public static DeleteAluno(idAluno: string): Promise<IResponse<IAlunoModel>> {
 		return RestApi.httpDelete(`/alunos/${idAluno}`);
+	}
+
+	public static GetAcessosPorUnidadeComMaisDeTres(): Promise<
+		IResponse<IAcessosPorUnidade[]>
+	> {
+		return RestApi.httpGet(`/alunos/acessos/unidade`);
 	}
 }
