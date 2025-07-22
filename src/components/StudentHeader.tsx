@@ -42,7 +42,7 @@ function StudentHeader(props: IStudentHeaderProps) {
 						</span>
 						<span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-700 text-yellow-100">
 							<CalendarIcon className="h-4 w-4 mr-1" />
-							Ativo desde: {formatarData(aluno.created_at)}
+							Ativo desde: {formatarData(aluno.createdAt)}
 						</span>
 					</div>
 				</div>

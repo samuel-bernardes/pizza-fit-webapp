@@ -43,7 +43,7 @@ function PlansTab(props: IPlansTabProps) {
 						Adquira um plano para começar a usar a academia
 					</p>
 					<button
-						onClick={() => navigate("/planos")}
+						onClick={() => navigate("/")}
 						className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-yellow-600 hover:bg-yellow-700"
 					>
 						Ver Planos Disponíveis

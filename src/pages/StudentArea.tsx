@@ -70,8 +70,8 @@ function StudentArea() {
 		status: "",
 		foto: "",
 		idPlano: null,
-		created_at: "",
-		updated_at: "",
+		createdAt: "",
+		updatedAt: "",
 	});
 
 	const [acessos, setAcessos] = useState<IAcessoModel[]>([]);

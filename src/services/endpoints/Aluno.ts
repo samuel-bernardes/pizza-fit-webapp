@@ -19,8 +19,8 @@ export interface IAlunoModel {
 	status: string;
 	foto: string;
 	idPlano: string | null;
-	created_at: string;
-	updated_at: string;
+	createdAt: string;
+	updatedAt: string;
 
 	// Novo campo opcional vindo do backend
 	plano?: IPlanoModel;
