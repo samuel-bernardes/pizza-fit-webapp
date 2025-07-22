@@ -5,10 +5,10 @@ import RestApi from "../ApiBase";
 export interface IAcessoModel {
 	id: string;
 	horaEntrada: string;
-	horaSaida: string | null;
-	id_aluno: string;
-	id_unidade: string;
-	descricao_atividade: string | null;
+	horaSaida?: string;
+	idAluno: string;
+	idUnidade: string;
+	descricaoAtividades?: string;
 	nomeUnidade?: string;
 	enderecoUnidade?: string;
 	created_at: string;

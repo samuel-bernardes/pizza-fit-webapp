@@ -697,7 +697,7 @@ function StudentArea() {
 															{acesso.nomeUnidade || "Não informado"}
 														</td>
 														<td className="px-6 py-4 text-sm text-gray-500">
-															{acesso.descricao_atividade || "Não informado"}
+															{acesso.descricaoAtividades || "Não informado"}
 														</td>
 														<td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
 															{acesso.horaSaida && (
@@ -709,7 +709,7 @@ function StudentArea() {
 																				: acesso.id
 																		);
 																		setDescricao(
-																			acesso.descricao_atividade || ""
+																			acesso.descricaoAtividades || ""
 																		);
 																	}}
 																	className="text-yellow-600 hover:text-yellow-900"

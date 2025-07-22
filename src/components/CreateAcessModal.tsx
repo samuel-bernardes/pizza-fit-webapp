@@ -2,7 +2,9 @@ import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/16/solid";
 import type { IAcessoCreateModel } from "../services/endpoints/Acessos";
 import { useEffect, useState } from "react";
-import UnidadesRequest, { type IUnidadeModel } from "../services/endpoints/Unidades";
+import UnidadesRequest, {
+	type IUnidadeModel,
+} from "../services/endpoints/Unidades";
 
 interface ICreateAcessModalProps {
 	newAcesso: IAcessoCreateModel;
